@@ -36,6 +36,34 @@ def main(page: ft.Page):
     page.vertical_alignment = "center"
     page.update() 
 
+    def fator_potencia():
+        if fator_poten.visible == True:
+            fator_p = fator_poten.value
+            try:
+                if fator_p == "":
+                    return ""
+                fator_p = str(fator_p)
+                if "," in (fator_p):
+                    fator_poten.value = fator_poten.value.replace(",",".")
+                    print("tem")
+                    print(fator_poten.value)
+                fator_p = float(fator_poten.value)
+                if fator_p > 1:
+                    aviso_dialog.content = ft.Text("Digite apenas de 0,00 á 1,00\npara fator potência.")
+                    aviso_dialog.open = True
+                    page.dialog = aviso_dialog
+                    fator_poten.border_color = "red"
+                    page.update()
+                    return "erro"      
+                pass
+            except ValueError:
+                aviso_dialog.content = ft.Text("Digite apenas números\npara fator potência.")
+                aviso_dialog.open = True
+                page.dialog = aviso_dialog
+                fator_poten.border_color = "red"
+                page.update()
+                return "erro"        
+
     def fator_agrupamento():
         agru = circuito.value
         
@@ -53,7 +81,7 @@ def main(page: ft.Page):
             page.dialog = aviso_dialog
             circuito.border_color = "red"
             page.update()
-            return "erro"    
+            return "erro"
     
     def corrente_equipamento():
 
@@ -79,8 +107,14 @@ def main(page: ft.Page):
             try:
                 float(circuito.value)
                 float(temperatura.value)
-                tensao = int(dropdown.value)   
-                carga_necessaria = (potenc / tensao) 
+                float(fator_poten.value)
+                tensao = int(dropdown.value)
+                if resistivo_switch.value:   
+                   carga_necessaria = (potenc / tensao)
+                else:
+                    fp = float(fator_poten.value)
+                    carga_necessaria = (potenc / fp) /tensao
+
                 carga_maxima_bitola_tabela = max(carga_por_bitola.values())*1.22
 
                 if carga_necessaria > carga_maxima_bitola_tabela:
@@ -149,23 +183,30 @@ def main(page: ft.Page):
     def limpar_resultados():
         resultado_cabo.value = ""
         resultado_disjuntor.value = ""
+        carga_nece.value = ""
+        carga_disj.value = ""
+        corrente_corrig.value = ""
+        
 
     def verificar_campos(e):       
         
         limpar_resultados()
+        fator_potc = fator_potencia()
         fator_temp = fator_temperatura()
         fator_agrup = fator_agrupamento()
         corrente_necessaria = corrente_equipamento()
 
-        if "erro" in (corrente_necessaria, fator_temp, fator_agrup):
+        if "erro" in (corrente_necessaria, fator_temp, fator_agrup, fator_potc):
             return
         
         campos = {
             "Potência": potencia.value.strip(),
             "Temperatura": temperatura.value.strip(),
             "Voltagem": dropdown.value,
-            "Circuitos": circuito.value.strip()
+            "Circuitos": circuito.value.strip(),
+            "Fator potência": fator_poten.value
         }
+        
        
         campos_invalidos = []
 
@@ -187,6 +228,7 @@ def main(page: ft.Page):
             temperatura.border_color = "red" if "Temperatura" in campos_invalidos else None
             dropdown.border_color = "red" if "Voltagem" in campos_invalidos else None
             circuito.border_color = "red" if "Circuitos" in campos_invalidos else None
+            fator_poten.border_color = "red" if "Circuitos" in campos_invalidos else None
 
             page.update()      
 
@@ -194,7 +236,8 @@ def main(page: ft.Page):
             potencia.border_color = None
             temperatura.border_color = None
             dropdown.border_color = None
-            circuito.border_color = None     
+            circuito.border_color = None
+            fator_poten.border_color = None     
             
             i = 0
             dimensionado = False
@@ -275,10 +318,14 @@ def main(page: ft.Page):
 
         botao.update()
 
+    def switch_changed(e):
+        fator_poten.visible = not e.control.value  
+        page.update() 
+
     audio = ft.Audio(
         src="alarm.mp3",
         autoplay=True,
-        on_state_changed=change_button,
+        on_state_changed=change_button
     )
 
     aviso_dialog = ft.AlertDialog(
@@ -290,12 +337,42 @@ def main(page: ft.Page):
         ],
     )
 
-    botao= ft.ElevatedButton("Pause playing", on_click=lambda _: audio.pause())
+    botao= ft.ElevatedButton(
+        "Pause playing",
+        style=ft.ButtonStyle(
+            text_style=ft.TextStyle(size=12) 
+        ),
+        width=50,
+        height=50,
+         on_click=lambda _: audio.pause()
+    )
 
     texto = ft.Text(
         value="Dimensionar",
         size= 35,
         weight=ft.FontWeight.BOLD
+    )
+
+    resistivo = ft.Text(value="Resistivo?",
+        size= 25,
+        weight=ft.FontWeight.BOLD)
+    
+    resistivo_switch = ft.Switch(value=False, on_change=switch_changed)
+
+    fator_poten = ft.TextField(
+        label="FATOR POTÊNCIA",
+        hint_text="0,92",
+        value= .92,
+        label_style=ft.TextStyle(
+            size=20,
+            weight=ft.FontWeight.BOLD
+        ),
+        width=170,
+        text_style= ft.TextStyle(
+            size=30,
+            weight=ft.FontWeight.BOLD            
+        ),
+        text_align=ft.TextAlign.CENTER
     )
 
     potencia = ft.TextField(
@@ -380,7 +457,7 @@ def main(page: ft.Page):
     )
     
     carga_disj = ft.TextField(
-        label="Carga p\ Disjuntor",
+        label="Carga p/ Disjuntor",
         label_style=ft.TextStyle(
             size=16,
             weight=ft.FontWeight.BOLD),
@@ -417,7 +494,7 @@ def main(page: ft.Page):
             weight=ft.FontWeight.BOLD
         ),
         text_style= ft.TextStyle(size=30,weight=ft.FontWeight.BOLD),
-        width=150,
+        width=160,
         focused_border_color='transparent',
         options=
         [
@@ -431,21 +508,21 @@ def main(page: ft.Page):
         width=100,
         height=50,        
         on_click=verificar_campos,
-        bgcolor= ft.Colors.WHITE70
+        bgcolor= ft.Colors.WHITE70,
     )
 
     minha_assinatura = ft.Text(
         value="Craker - 2025",
-        size= 10 ,
+        size= 15 ,
         weight=ft.FontWeight.BOLD,
         color=ft.Colors.BLUE
     )
 
     versao = ft.Text(
-        value="versao(beta-0,2)",
-        size= 8 ,
+        value="versão (beta-0.2)",
+        size= 15 ,
         weight=ft.FontWeight.BOLD,
-        color=ft.Colors.BLUE
+        color=ft.Colors.WHITE
     )         
 
     fundo = ft.Stack(
@@ -453,8 +530,7 @@ def main(page: ft.Page):
         [
             ft.Image(
                 src= "bg2.gif",
-                width= 400,
-                height= 700,
+                expand=True,
                 fit= ft.ImageFit.COVER
             ),
             ft.Container(                    
@@ -463,31 +539,24 @@ def main(page: ft.Page):
                 border_radius=15,
                 bgcolor= ft.Colors.WHITE30,
                 blur = 1.5,
-                padding= 20,
-                margin=ft.Margin(10, 20, 10, 20),                    
+                padding= 10,
+                margin=ft.Margin(10, 5, 5, 5),                    
                 content= ft.Column(
                     controls=
                     [      
                         ft.Row(
-                            [botao,
-                                ft.Container(
-                                    content=minha_assinatura,
-                                    margin=ft.Margin(top=0, right= 140, bottom=0, left=0)  # ajuste o valor conforme o espaço desejado
-                                )
-                            ],
+                            [texto, botao],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                        ),                 
-                        texto,
+                        ),
+                        ft.Row(
+                            [botao_iniciar, resistivo, resistivo_switch],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                        ),
                         potencia,
                         temperatura,
                         circuito,
                         ft.Row(
-                            [dropdown,
-                                ft.Container(
-                                    content=botao_iniciar,
-                                    margin=ft.Margin(top=0, right= 40, bottom=0, left=0)  # ajuste o valor conforme o espaço desejado
-                                )
-                            ],
+                            [dropdown, fator_poten],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         ft.Row(
@@ -499,12 +568,18 @@ def main(page: ft.Page):
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         ft.Row(
-                            [versao],
+                            [minha_assinatura,
+                                ft.Container(
+                                    content=versao,
+                                    margin=ft.Margin(top=0, right= 0, bottom=0, left=110)  
+                                )
+                            ],
                             alignment=ft.MainAxisAlignment.START
                         )
                     ],
                     alignment=ft.MainAxisAlignment.START,
                     horizontal_alignment=ft.MainAxisAlignment.CENTER
+                    
                 )                
             )
         ]                     
@@ -513,7 +588,7 @@ def main(page: ft.Page):
     page.overlay.append(aviso_dialog)
     page.add(        
         audio,
-        fundo,
+        fundo
     )
        
     page.update()
