@@ -38,15 +38,15 @@ def main(page: ft.Page):
 
     def fator_potencia():
         if fator_poten.visible == True:
+
             fator_p = fator_poten.value
+
             try:
                 if fator_p == "":
                     return ""
                 fator_p = str(fator_p)
                 if "," in (fator_p):
                     fator_poten.value = fator_poten.value.replace(",",".")
-                    print("tem")
-                    print(fator_poten.value)
                 fator_p = float(fator_poten.value)
                 if fator_p > 1:
                     aviso_dialog.content = ft.Text("Digite apenas de 0,00 á 1,00\npara fator potência.")
@@ -55,14 +55,18 @@ def main(page: ft.Page):
                     fator_poten.border_color = "red"
                     page.update()
                     return "erro"      
-                pass
+                pass            
             except ValueError:
                 aviso_dialog.content = ft.Text("Digite apenas números\npara fator potência.")
                 aviso_dialog.open = True
                 page.dialog = aviso_dialog
                 fator_poten.border_color = "red"
                 page.update()
-                return "erro"        
+                return "erro"
+            
+        else:
+            fator_poten.value = 0.92
+            return "1"            
 
     def fator_agrupamento():
         agru = circuito.value
@@ -73,8 +77,7 @@ def main(page: ft.Page):
             for circuitos, fator in agrupamento_de_circuitos.items():
                 if circuitos == int(agru):
                     agrupamento = fator 
-                    return agrupamento        
-            
+                    return agrupamento           
         else:
             aviso_dialog.content = ft.Text("Digite apenas de 1 a 8 para circuitos.")
             aviso_dialog.open = True
@@ -109,7 +112,7 @@ def main(page: ft.Page):
                 float(temperatura.value)
                 float(fator_poten.value)
                 tensao = int(dropdown.value)
-                if resistivo_switch.value:   
+                if fator_poten.visible == False:  
                    carga_necessaria = (potenc / tensao)
                 else:
                     fp = float(fator_poten.value)
@@ -228,7 +231,7 @@ def main(page: ft.Page):
             temperatura.border_color = "red" if "Temperatura" in campos_invalidos else None
             dropdown.border_color = "red" if "Voltagem" in campos_invalidos else None
             circuito.border_color = "red" if "Circuitos" in campos_invalidos else None
-            fator_poten.border_color = "red" if "Circuitos" in campos_invalidos else None
+            fator_poten.border_color = "red" if "Fator potência" in campos_invalidos else None
 
             page.update()      
 
@@ -279,6 +282,7 @@ def main(page: ft.Page):
                             page.dialog = aviso_dialog
                             page.update()
                             break
+
                         folga -= 0.01
 
                     if not disjuntor_encontrado:
@@ -311,7 +315,6 @@ def main(page: ft.Page):
         if e.state == ft.AudioState.PAUSED:
             botao.text = "Play Music"
             botao.on_click = lambda e: audio.resume()
-
         elif e.state == ft.AudioState.PLAYING:
             botao.text = "Pause Music"
             botao.on_click = lambda e: audio.pause()
@@ -332,15 +335,14 @@ def main(page: ft.Page):
         modal=True,
         title=ft.Text("Erro de preenchimento"),
         content=ft.Text(""),
-        actions=[
-            ft.TextButton("Fechar", on_click=lambda e: fechar_dialogo())
-        ],
+        actions=[ft.TextButton("Fechar", on_click=lambda e: fechar_dialogo())]
     )
 
     botao= ft.ElevatedButton(
         "Pause playing",
-        style=ft.ButtonStyle(
-            text_style=ft.TextStyle(size=12) 
+        style=ft.ButtonStyle(text_style=ft.TextStyle(
+            size=12
+            )
         ),
         width=50,
         height=50,
@@ -353,11 +355,16 @@ def main(page: ft.Page):
         weight=ft.FontWeight.BOLD
     )
 
-    resistivo = ft.Text(value="Resistivo?",
+    resistivo = ft.Text(
+        value="Resistivo?",
         size= 25,
-        weight=ft.FontWeight.BOLD)
+        weight=ft.FontWeight.BOLD
+    )
     
-    resistivo_switch = ft.Switch(value=False, on_change=switch_changed)
+    resistivo_switch = ft.Switch(
+        value=False,
+        on_change=switch_changed
+    )
 
     fator_poten = ft.TextField(
         label="FATOR POTÊNCIA",
@@ -421,8 +428,12 @@ def main(page: ft.Page):
         label="Cabo recomendado",
         label_style=ft.TextStyle(
             size=16,
-            weight=ft.FontWeight.BOLD),
-        text_style= ft.TextStyle(size=25,weight=ft.FontWeight.BOLD),
+            weight=ft.FontWeight.BOLD
+            ),
+        text_style= ft.TextStyle(
+            size=25,
+            weight=ft.FontWeight.BOLD
+            ),
         bgcolor=ft.Colors.WHITE54 ,
         read_only=True,
         filled=True,
@@ -434,8 +445,12 @@ def main(page: ft.Page):
         label="Disjuntor recomendado",
         label_style=ft.TextStyle(
             size=16,
-            weight=ft.FontWeight.BOLD),
-        text_style= ft.TextStyle(size=25,weight=ft.FontWeight.BOLD),
+            weight=ft.FontWeight.BOLD
+            ),
+        text_style= ft.TextStyle(
+            size=25,
+            weight=ft.FontWeight.BOLD
+            ),
         bgcolor= ft.Colors.WHITE54,
         read_only=True,
         filled=True,
@@ -447,8 +462,12 @@ def main(page: ft.Page):
         label="Carga necessária",
         label_style=ft.TextStyle(
             size=16,
-            weight=ft.FontWeight.BOLD),
-        text_style= ft.TextStyle(size=20,weight=ft.FontWeight.BOLD),
+            weight=ft.FontWeight.BOLD
+            ),
+        text_style= ft.TextStyle(
+            size=20,
+            weight=ft.FontWeight.BOLD
+            ),
         bgcolor=ft.Colors.WHITE12,
         read_only=True,
         filled=True,
@@ -460,8 +479,12 @@ def main(page: ft.Page):
         label="Carga p/ Disjuntor",
         label_style=ft.TextStyle(
             size=16,
-            weight=ft.FontWeight.BOLD),
-        text_style= ft.TextStyle(size=20,weight=ft.FontWeight.BOLD),
+            weight=ft.FontWeight.BOLD
+            ),
+        text_style= ft.TextStyle(
+            size=20,
+            weight=ft.FontWeight.BOLD
+            ),
         bgcolor=ft.Colors.WHITE12,
         read_only=True,
         filled=True,
@@ -473,8 +496,12 @@ def main(page: ft.Page):
         label="Max cabo(A) corrigida",
         label_style=ft.TextStyle(
             size=16,
-            weight=ft.FontWeight.BOLD),
-        text_style= ft.TextStyle(size=20,weight=ft.FontWeight.BOLD),
+            weight=ft.FontWeight.BOLD
+            ),
+        text_style= ft.TextStyle(
+            size=20,
+            weight=ft.FontWeight.BOLD
+            ),
         bgcolor= ft.Colors.WHITE12,
         read_only=True,
         filled=True,
@@ -492,8 +519,11 @@ def main(page: ft.Page):
         label_style=ft.TextStyle(
             size=30,
             weight=ft.FontWeight.BOLD
-        ),
-        text_style= ft.TextStyle(size=30,weight=ft.FontWeight.BOLD),
+            ),
+        text_style= ft.TextStyle(
+            size=30,
+            weight=ft.FontWeight.BOLD
+            ),
         width=160,
         focused_border_color='transparent',
         options=
@@ -545,34 +575,54 @@ def main(page: ft.Page):
                     controls=
                     [      
                         ft.Row(
-                            [texto, botao],
+                            [
+                             texto,
+                             botao],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         ft.Row(
-                            [botao_iniciar, resistivo, resistivo_switch],
+                            [
+                             ft.Container(
+                                content=botao_iniciar,
+                                margin=ft.Margin(top=-10, right= 0, bottom=0, left=0)  
+                             ),
+                             resistivo,
+                             resistivo_switch
+                            ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         potencia,
                         temperatura,
                         circuito,
                         ft.Row(
-                            [dropdown, fator_poten],
+                            [
+                             dropdown,
+                             fator_poten
+                            ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         ft.Row(
-                            [carga_nece, carga_disj, corrente_corrig],
+                            [
+                             carga_nece,
+                             carga_disj,
+                             corrente_corrig
+                            ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         ft.Row(
-                            [resultado_cabo, resultado_disjuntor],
+                            [
+                             resultado_cabo,
+                             resultado_disjuntor
+                            ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         ft.Row(
-                            [minha_assinatura,
-                                ft.Container(
+                            [
+                             minha_assinatura,
+                             ft.Container(
                                     content=versao,
                                     margin=ft.Margin(top=0, right= 0, bottom=0, left=110)  
-                                )
+                             )
                             ],
                             alignment=ft.MainAxisAlignment.START
                         )
