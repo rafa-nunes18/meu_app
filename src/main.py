@@ -7,7 +7,11 @@ carga_por_bitola = {
     10: 57,
     16: 76,
     25: 101,
-    35: 125
+    35: 125,
+    50: 151,
+    70: 192,
+    95: 232,
+    120: 269
 }
 
 agrupamento_de_circuitos = {
@@ -21,7 +25,7 @@ agrupamento_de_circuitos = {
     8: 0.52
 }
 
-lista_disjuntores = [6,10,16,20,25,32,40,50,63]
+lista_disjuntores = [6,10,16,20,25,32,40,50,63,70,80,100,125]
 
 
 def main(page: ft.Page):
@@ -36,131 +40,108 @@ def main(page: ft.Page):
     page.vertical_alignment = "center"
     page.update() 
 
+    def aviso(caixa_red,texto):
+        aviso_dialog.content = ft.Text(texto)
+        aviso_dialog.open = True
+        page.dialog = aviso_dialog
+        caixa_red.border_color = "red"
+        page.update()
+
     def fator_potencia():
         if fator_poten.visible == True:
 
-            fator_p = fator_poten.value
-
             try:
+                fator_p = str(fator_poten.value).strip()
                 if fator_p == "":
-                    return ""
-                fator_p = str(fator_p)
+                    return ""                
                 if "," in (fator_p):
                     fator_poten.value = fator_poten.value.replace(",",".")
-                fator_p = float(fator_poten.value)
-                if fator_p > 1:
-                    aviso_dialog.content = ft.Text("Digite apenas de 0,00 á 1,00\npara fator potência.")
-                    aviso_dialog.open = True
-                    page.dialog = aviso_dialog
-                    fator_poten.border_color = "red"
-                    page.update()
-                    return "erro"      
-                pass            
+                fator_p = float(fator_poten.value)                    
+                if fator_p > 1 or fator_p < 0:
+                    aviso(fator_poten,"Digite apenas de 0,00 á 1,00\npara Fator Potência.")
+                    return "erro"
+                else:
+                    return fator_p                           
             except ValueError:
-                aviso_dialog.content = ft.Text("Digite apenas números\npara fator potência.")
-                aviso_dialog.open = True
-                page.dialog = aviso_dialog
-                fator_poten.border_color = "red"
-                page.update()
+                aviso(fator_poten,"Digite apenas números\npara Fator Potência.")
                 return "erro"
             
         else:
             fator_poten.value = 0.92
             return "1"            
 
-    def fator_agrupamento():
-        agru = circuito.value
-        
-        if agru == "":
-            return ""       
-        elif agru.isdigit() and 1 <= int(agru) <= 8:
-            for circuitos, fator in agrupamento_de_circuitos.items():
-                if circuitos == int(agru):
-                    agrupamento = fator 
-                    return agrupamento           
-        else:
-            aviso_dialog.content = ft.Text("Digite apenas de 1 a 8 para circuitos.")
-            aviso_dialog.open = True
-            page.dialog = aviso_dialog
-            circuito.border_color = "red"
-            page.update()
+    def fator_agrupamento():   
+        try:
+            agru= str(circuito.value).strip() 
+
+            if agru == "":
+                return "" 
+            elif "," in agru:
+                aviso(circuito,"Não digite virgulas em Circuitos.")
+                return "erro"
+            
+            agru = int(agru) 
+
+            if agru <= 0:
+                aviso(circuito,"Digite 1 ou mais circuitos.")
+                return "erro"     
+            elif  1 <= agru <= 8:
+                for circuitos, fator in agrupamento_de_circuitos.items():
+                    if circuitos == agru:
+                        agrupamento = fator 
+                        return agrupamento
+            elif 9 <= agru <= 11:
+                return 0.50
+            elif 12 <= agru <= 15:
+                return 0.45   
+            elif 16 <= agru <= 19:
+                return 0.41
+            elif agru >= 20:
+                return 0.38           
+            
+        except ValueError:
+            aviso(circuito,"Digite apenas números\npara Circuitos.")
             return "erro"
     
-    def corrente_equipamento():
-
-        watts = potencia.value
-
-        if watts == "":
-            return ""
+    def corrente_equipamento():     
         
         try:
+            watts = str(potencia.value).strip()
+            if watts == "":
+                return ""
             if "," in watts:
-                watts = watts.replace(",",".") 
-            potenc =float(watts)
-            pass
+                potencia.value = potencia.value.replace(",","")
+            watts =float(potencia.value)
+            return watts
         except ValueError:
-            aviso_dialog.content = ft.Text("Digite apenas números para potência.")
-            aviso_dialog.open = True
-            page.dialog = aviso_dialog
-            potencia.border_color = "red"
-            page.update()
-            return "erro"
-        
-        if dropdown.value is not None:
-            try:
-                float(circuito.value)
-                float(temperatura.value)
-                float(fator_poten.value)
-                tensao = int(dropdown.value)
-                if fator_poten.visible == False:  
-                   carga_necessaria = (potenc / tensao)
-                else:
-                    fp = float(fator_poten.value)
-                    carga_necessaria = (potenc / fp) /tensao
-
-                carga_maxima_bitola_tabela = max(carga_por_bitola.values())*1.22
-
-                if carga_necessaria > carga_maxima_bitola_tabela:
-                    aviso_dialog.content = ft.Text(f"Apotência {carga_necessaria:.0f} excede a capacidade máxima do programa.")
-                    aviso_dialog.open = True
-                    page.dialog = aviso_dialog
-                    potencia.border_color = "red"
-                    page.update()
-                    return "erro"
-                else:                
-                    return carga_necessaria
-            except:
-                return "erro"    
+            aviso(potencia,"Digite apenas números para Potência.")
+            return "erro"           
                     
-    def fator_temperatura():
-        
-        tempe=(temperatura.value)        
-            
-        if tempe == "":
-            return ""
+    def fator_temperatura():      
         
         try:
-            if "," in tempe:
-                tempe = tempe.replace(",",".") 
-            temp=float(tempe)
-            pass
+            temp = str(temperatura.value).strip()
+            if temp == "":            
+                return ""
+            if "," in temp:
+                temperatura.value = temperatura.value.replace(",",".") 
+            temp=float(temperatura.value)
+            if temp < 10 or temp > 60:
+                aviso_dialog.content = ft.Text(f" A temperatura {temp}°C esta fora do intervalo permitido.\n Coloque de 10 a 60 °C.")
+                aviso_dialog.open = True
+                page.dialog = aviso_dialog
+                temperatura.border_color = "red"
+                page.update()
+                return "erro"
         except ValueError:
             aviso_dialog.content = ft.Text("Digite apenas números para temperatura.")
             aviso_dialog.open = True
             page.dialog = aviso_dialog
             temperatura.border_color = "red"
             page.update()
-            return "erro"
-
-        if temp < 10 or temp > 60:
-            aviso_dialog.content = ft.Text(f" A temperatura {temp}°C esta fora do intervalo permitido.\n Coloque de 10 a 60 °C.")
-            aviso_dialog.open = True
-            page.dialog = aviso_dialog
-            temperatura.border_color = "red"
-            page.update()
-            return "erro"
+            return "erro"        
    
-        elif 10 <= temp < 15:  
+        if 10 <= temp < 15:  
             return 1.22  
         elif 15 <= temp < 20:  
             return 1.17  
@@ -189,41 +170,39 @@ def main(page: ft.Page):
         carga_nece.value = ""
         carga_disj.value = ""
         corrente_corrig.value = ""
-        
+        resultado_fa.value =  "" 
+        resultado_ft.value = ""     
 
     def verificar_campos(e):       
         
         limpar_resultados()
-        fator_potc = fator_potencia()
+        potencia_watts = corrente_equipamento()
         fator_temp = fator_temperatura()
         fator_agrup = fator_agrupamento()
-        corrente_necessaria = corrente_equipamento()
-
-        if "erro" in (corrente_necessaria, fator_temp, fator_agrup, fator_potc):
-            return
-        
+        fator_potc = fator_potencia()       
+        volts = dropdown.value
+       
         campos = {
-            "Potência": potencia.value.strip(),
-            "Temperatura": temperatura.value.strip(),
-            "Voltagem": dropdown.value,
-            "Circuitos": circuito.value.strip(),
-            "Fator potência": fator_poten.value
-        }
-        
+            "Potência": potencia_watts, 
+            "Temperatura": fator_temp,
+            "Tensão": volts,
+            "Circuitos": fator_agrup,
+            "Fator potência": fator_potc
+        }      
        
         campos_invalidos = []
 
         for nome, valor in campos.items():
-            if valor == "" or valor == None:
+            if "erro" == valor:
+                return
+            elif valor == "" or valor == None:
                 campos_invalidos.append(nome)
             else:
-                try:
-                    float(valor)
-                except ValueError:
-                    campos_invalidos.append(nome)       
+                pass      
 
         if campos_invalidos:
             aviso_dialog.content = ft.Text(f"Corrija o(s) campo(s): {', '.join(campos_invalidos)}")
+            aviso_dialog.title= ft.Text("Erro de preenchimento")
             aviso_dialog.open = True
             page.dialog = aviso_dialog
 
@@ -242,34 +221,47 @@ def main(page: ft.Page):
             circuito.border_color = None
             fator_poten.border_color = None     
             
-            i = 0
-            dimensionado = False
-
+            tensao = int(volts)
+            carga_maxima_bitola_tabela = max(carga_por_bitola.values())*1.22
             bitolas_correntes = list(carga_por_bitola.items())
-            bitolas_correntes.sort()            
+            bitolas_correntes.sort()
+
+            if fator_poten.visible == False:  
+                carga_necessaria = (potencia_watts / tensao)
+            else:
+                carga_necessaria = (potencia_watts / fator_potc) / tensao                          
+
+            if carga_necessaria > carga_maxima_bitola_tabela:
+                aviso(potencia,f"Apotência {carga_necessaria:.0f} excede a capacidade máxima do programa.")
+                return          
+            
+            i = 0
+            dimensionado = False 
 
             while not dimensionado and i < len(bitolas_correntes):
                 cabo, carga = bitolas_correntes[i]
                 carga_corrigida = carga * fator_temp * fator_agrup
 
-                if corrente_necessaria <= carga_corrigida:
+                if carga_necessaria <= carga_corrigida:
 
                     disjuntor_encontrado = False
                     folga = 1.15
 
-                    while folga >= 1.00:
+                    while folga >= 1.10:
 
-                        carga_disjuntor = corrente_necessaria * folga
+                        carga_disjuntor = carga_necessaria * folga
                         
                         for disj in lista_disjuntores:
                             if carga_disjuntor <= disj <= carga_corrigida:
                                 disjuntor = disj
                                 bitola = cabo
+                                resultado_ft.value = f"{fator_temp}"
+                                resultado_fa.value = f"{fator_agrup}"
                                 resultado_disjuntor.value = f"{disjuntor} A"
                                 resultado_cabo.value = f"{bitola} mm²"
                                 carga_disj.value = f"{carga_disjuntor:.2f} A"
                                 corrente_corrig.value = f"{carga_corrigida:.2f} A"
-                                carga_nece.value = f"{corrente_necessaria:.2f} A"
+                                carga_nece.value = f"{carga_necessaria:.2f} A"
                                 dimensionado = True
                                 disjuntor_encontrado = True
                                 page.update()
@@ -277,7 +269,7 @@ def main(page: ft.Page):
 
                         if disjuntor_encontrado:
                             aviso_dialog.title = ft.Text("Folga da corrente")
-                            aviso_dialog.content = ft.Text(f"Foi adicionado {((folga - 1) * 100):.0f}% na carga necessária\npara dimensionar o disjuntor.")
+                            aviso_dialog.content = ft.Text(f"Por segurança foi adicionado {((folga - 1) * 100):.0f}% na carga necessária\npara dimensionar o disjuntor.\nClique em HELP para mais informaçoes.")
                             aviso_dialog.open = True
                             page.dialog = aviso_dialog
                             page.update()
@@ -291,17 +283,7 @@ def main(page: ft.Page):
                     i += 1  
 
             if not dimensionado:
-                aviso_dialog.content = ft.Text(f"Nenhuma combinação de cabo e disjuntor\natende à carga de {corrente_necessaria:.2f} A.")
-                aviso_dialog.open = True
-                
-                potencia.border_color = None
-                temperatura.border_color = None
-                dropdown.border_color = None
-                circuito.border_color = None
-
-                page.dialog = aviso_dialog
-                page.update()               
-           
+                aviso(potencia,f"Nenhuma combinação de cabo e disjuntor\natende à Potencia de {carga_necessaria:.2f} A.")        
 
     def focus_textfield(textfield: ft.TextField):
         textfield.focus()  
@@ -349,14 +331,20 @@ def main(page: ft.Page):
          on_click=lambda _: audio.pause()
     )
 
-    texto = ft.Text(
+    titulo = ft.Text(
         value="Dimensionar",
         size= 35,
         weight=ft.FontWeight.BOLD
     )
 
+    resultado = ft.Text(
+        value="Resultados",
+        size= 25,
+        weight=ft.FontWeight.BOLD
+    )
+
     resistivo = ft.Text(
-        value="Resistivo?",
+        value="Equipamento Resistivo",
         size= 25,
         weight=ft.FontWeight.BOLD
     )
@@ -368,13 +356,14 @@ def main(page: ft.Page):
 
     fator_poten = ft.TextField(
         label="FATOR POTÊNCIA",
-        hint_text="0,92",
+        hint_text="FP",
         value= .92,
         label_style=ft.TextStyle(
-            size=20,
+            size=22,
             weight=ft.FontWeight.BOLD
         ),
         width=170,
+        height=60,
         text_style= ft.TextStyle(
             size=30,
             weight=ft.FontWeight.BOLD            
@@ -383,45 +372,85 @@ def main(page: ft.Page):
     )
 
     potencia = ft.TextField(
-        label="Potência",
-        hint_text="Digite a potência (W)",
+        label="Potência(W)",
+        hint_text="WATTS",
         label_style=ft.TextStyle(
-            size=30,
+            size=25,
             weight=ft.FontWeight.BOLD
         ),
-        width=350,
+        width=180,
+        height=60,
         text_style= ft.TextStyle(
             size=30,
             weight=ft.FontWeight.BOLD
-        )
+        ),
+        text_align=ft.TextAlign.CENTER
     )
 
     temperatura  = ft.TextField(
         label="Temperatura",
-        hint_text="Digite a temperatura",
+        hint_text="Graus(°C)",
         label_style=ft.TextStyle(
-            size=30,
+            size=25,
             weight=ft.FontWeight.BOLD
         ),
-        width=350,
+        width=180,
+        height=60,
         text_style= ft.TextStyle(
             size=30,
-            weight=ft.FontWeight.BOLD
-        )
+            weight=ft.FontWeight.BOLD  
+        ),
+        text_align=ft.TextAlign.CENTER
     )
 
     circuito  = ft.TextField(
         label="Circuitos",
-        hint_text="Digite os circuitos",
+        hint_text="FA",
         label_style=ft.TextStyle(
-            size=30,
+            size=25,
             weight=ft.FontWeight.BOLD
         ),
-        width=350,
+        width=170,
+        height=60,
         text_style= ft.TextStyle(
             size=30,
             weight=ft.FontWeight.BOLD
-        )
+        ),
+        text_align=ft.TextAlign.CENTER
+    )
+
+    resultado_ft = ft.TextField(
+        label="Fator Temperatura",
+        label_style=ft.TextStyle(
+            size=16,
+            weight=ft.FontWeight.BOLD
+            ),
+        text_style= ft.TextStyle(
+            size=20,
+            weight=ft.FontWeight.BOLD
+            ),
+        bgcolor=ft.Colors.WHITE12,
+        read_only=True,
+        filled=True,
+        width=130,
+        text_align=ft.TextAlign.CENTER
+    )
+
+    resultado_fa = ft.TextField(
+        label="Fator Agrupamento",
+        label_style=ft.TextStyle(
+            size=16,
+            weight=ft.FontWeight.BOLD
+            ),
+        text_style= ft.TextStyle(
+            size=20,
+            weight=ft.FontWeight.BOLD
+            ),
+        bgcolor=ft.Colors.WHITE12,
+        read_only=True,
+        filled=True,
+        width=135,
+        text_align=ft.TextAlign.CENTER
     )
 
     resultado_cabo = ft.TextField(
@@ -434,7 +463,7 @@ def main(page: ft.Page):
             size=25,
             weight=ft.FontWeight.BOLD
             ),
-        bgcolor=ft.Colors.WHITE54 ,
+        bgcolor=ft.Colors.WHITE54,
         read_only=True,
         filled=True,
         width=150,
@@ -514,17 +543,18 @@ def main(page: ft.Page):
     circuito.on_click = lambda e: focus_textfield(circuito)
 
     dropdown = ft.Dropdown(
-        label="Volts",
-        hint_text="Escolha a tensão", 
+        label="Tensão",
+        hint_text="VOLTS", 
         label_style=ft.TextStyle(
-            size=30,
+            size=25,
             weight=ft.FontWeight.BOLD
             ),
         text_style= ft.TextStyle(
-            size=30,
+            size=25,
             weight=ft.FontWeight.BOLD
             ),
-        width=160,
+        width=175,
+      
         focused_border_color='transparent',
         options=
         [
@@ -576,30 +606,50 @@ def main(page: ft.Page):
                     [      
                         ft.Row(
                             [
-                             texto,
+                             titulo,
                              botao],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         ft.Row(
-                            [
-                             ft.Container(
-                                content=botao_iniciar,
-                                margin=ft.Margin(top=-10, right= 0, bottom=0, left=0)  
-                             ),
+                            [                            
                              resistivo,
                              resistivo_switch
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
-                        potencia,
-                        temperatura,
-                        circuito,
                         ft.Row(
-                            [
-                             dropdown,
+                            [potencia,
                              fator_poten
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                        ),
+                        ft.Row(
+                            [
+                             temperatura,
+                             circuito,
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                        ),
+                        ft.Row(
+                            [
+                             dropdown,
+                              ft.Container(
+                                content=botao_iniciar,
+                                margin=ft.Margin(top=0, right= 35, bottom=0, left=0)  
+                             )                           
+                            ],
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
+                        ),
+                        ft.Row([
+                            resultado 
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER                        
+                        ),
+                        ft.Row([
+                            resultado_ft,
+                            resultado_fa
+                            ],
+                            alignment=ft.MainAxisAlignment.CENTER
                         ),
                         ft.Row(
                             [
