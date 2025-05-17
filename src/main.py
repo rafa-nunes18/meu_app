@@ -36,38 +36,6 @@ def main(page: ft.Page):
     page.vertical_alignment = "center"
     page.update() 
 
-    def fator_potencia():
-        if fator_poten.visible == True:
-
-            fator_p = fator_poten.value
-
-            try:
-                if fator_p == "":
-                    return ""
-                fator_p = str(fator_p)
-                if "," in (fator_p):
-                    fator_poten.value = fator_poten.value.replace(",",".")
-                fator_p = float(fator_poten.value)
-                if fator_p > 1:
-                    aviso_dialog.content = ft.Text("Digite apenas de 0,00 á 1,00\npara fator potência.")
-                    aviso_dialog.open = True
-                    page.dialog = aviso_dialog
-                    fator_poten.border_color = "red"
-                    page.update()
-                    return "erro"      
-                pass            
-            except ValueError:
-                aviso_dialog.content = ft.Text("Digite apenas números\npara fator potência.")
-                aviso_dialog.open = True
-                page.dialog = aviso_dialog
-                fator_poten.border_color = "red"
-                page.update()
-                return "erro"
-            
-        else:
-            fator_poten.value = 0.92
-            return "1"            
-
     def fator_agrupamento():
         agru = circuito.value
         
@@ -110,14 +78,8 @@ def main(page: ft.Page):
             try:
                 float(circuito.value)
                 float(temperatura.value)
-                float(fator_poten.value)
-                tensao = int(dropdown.value)
-                if fator_poten.visible == False:  
-                   carga_necessaria = (potenc / tensao)
-                else:
-                    fp = float(fator_poten.value)
-                    carga_necessaria = (potenc / fp) /tensao
-
+                tensao = int(dropdown.value)   
+                carga_necessaria = (potenc / tensao) 
                 carga_maxima_bitola_tabela = max(carga_por_bitola.values())*1.22
 
                 if carga_necessaria > carga_maxima_bitola_tabela:
@@ -231,7 +193,6 @@ def main(page: ft.Page):
             temperatura.border_color = "red" if "Temperatura" in campos_invalidos else None
             dropdown.border_color = "red" if "Voltagem" in campos_invalidos else None
             circuito.border_color = "red" if "Circuitos" in campos_invalidos else None
-            fator_poten.border_color = "red" if "Fator potência" in campos_invalidos else None
 
             page.update()      
 
@@ -338,48 +299,12 @@ def main(page: ft.Page):
         actions=[ft.TextButton("Fechar", on_click=lambda e: fechar_dialogo())]
     )
 
-    botao= ft.ElevatedButton(
-        "Pause playing",
-        style=ft.ButtonStyle(text_style=ft.TextStyle(
-            size=12
-            )
-        ),
-        width=50,
-        height=50,
-         on_click=lambda _: audio.pause()
-    )
+    botao= ft.ElevatedButton("Pause playing", on_click=lambda _: audio.pause())
 
     texto = ft.Text(
         value="Dimensionar",
         size= 35,
         weight=ft.FontWeight.BOLD
-    )
-
-    resistivo = ft.Text(
-        value="Resistivo?",
-        size= 25,
-        weight=ft.FontWeight.BOLD
-    )
-    
-    resistivo_switch = ft.Switch(
-        value=False,
-        on_change=switch_changed
-    )
-
-    fator_poten = ft.TextField(
-        label="FATOR POTÊNCIA",
-        hint_text="0,92",
-        value= .92,
-        label_style=ft.TextStyle(
-            size=20,
-            weight=ft.FontWeight.BOLD
-        ),
-        width=170,
-        text_style= ft.TextStyle(
-            size=30,
-            weight=ft.FontWeight.BOLD            
-        ),
-        text_align=ft.TextAlign.CENTER
     )
 
     potencia = ft.TextField(
@@ -519,12 +444,9 @@ def main(page: ft.Page):
         label_style=ft.TextStyle(
             size=30,
             weight=ft.FontWeight.BOLD
-            ),
-        text_style= ft.TextStyle(
-            size=30,
-            weight=ft.FontWeight.BOLD
-            ),
-        width=160,
+        ),
+        text_style= ft.TextStyle(size=30,weight=ft.FontWeight.BOLD),
+        width=150,
         focused_border_color='transparent',
         options=
         [
@@ -575,19 +497,11 @@ def main(page: ft.Page):
                     controls=
                     [      
                         ft.Row(
-                            [
-                             texto,
-                             botao],
-                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN
-                        ),
-                        ft.Row(
-                            [
-                             ft.Container(
-                                content=botao_iniciar,
-                                margin=ft.Margin(top=-10, right= 0, bottom=0, left=0)  
-                             ),
-                             resistivo,
-                             resistivo_switch
+                            [botao,
+                                ft.Container(
+                                    content=minha_assinatura,
+                                    margin=ft.Margin(top=0, right= 140, bottom=0, left=0)  # ajuste o valor conforme o espaço desejado
+                                )
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
@@ -595,9 +509,11 @@ def main(page: ft.Page):
                         temperatura,
                         circuito,
                         ft.Row(
-                            [
-                             dropdown,
-                             fator_poten
+                            [dropdown,
+                                ft.Container(
+                                    content=botao_iniciar,
+                                    margin=ft.Margin(top=0, right= 40, bottom=0, left=0)  # ajuste o valor conforme o espaço desejado
+                                )
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
@@ -617,13 +533,7 @@ def main(page: ft.Page):
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         ft.Row(
-                            [
-                             minha_assinatura,
-                             ft.Container(
-                                    content=versao,
-                                    margin=ft.Margin(top=0, right= 0, bottom=0, left=110)  
-                             )
-                            ],
+                            [versao],
                             alignment=ft.MainAxisAlignment.START
                         )
                     ],
