@@ -29,6 +29,7 @@ lista_disjuntores = [6,10,16,20,25,32,40,50,63,70,80,100,125]
 
 
 def main(page: ft.Page):
+    
     page.title= 'Dimencionador de cabo e disjuntor'
     page.window_height= 700   
     page.window_width = 400   
@@ -42,10 +43,54 @@ def main(page: ft.Page):
 
     def aviso(caixa_red,texto):
         aviso_dialog.content = ft.Text(texto)
-        aviso_dialog.open = True
-        page.dialog = aviso_dialog
+        aviso_dialog.open = True        
         caixa_red.border_color = "red"
         page.update()
+
+    def focus_textfield(textfield: ft.TextField):
+        textfield.focus()  
+        page.update()
+
+    def fechar_dialogo():
+        aviso_dialog.open = False
+        page.update()
+    
+    def change_button(e):
+        if e.state == ft.AudioState.PAUSED:
+            botao_audio.text = "Play Music"
+            botao_audio.on_click = lambda e: audio.resume()
+        elif e.state == ft.AudioState.PLAYING:
+            botao_audio.text = "Pause Music"
+            botao_audio.on_click = lambda e: audio.pause()
+
+        botao_audio.update()
+
+    def switch_changed(e):
+        fator_poten.visible = not e.control.value  
+        page.update() 
+
+    def mostrar_info(e):
+        print(f"{resultado_completo.value}")
+        aviso_dialog.title="Resultado Completo"
+        aviso_dialog.content = ft.Text(resultado_completo.value)
+        aviso_dialog.actions=[ft.TextButton("Fechar", on_click= esconder_info)]
+        aviso_dialog.open = True        
+        page.update()
+
+    def esconder_info(e):
+        aviso_dialog.title=ft.Text("Erro de preenchimento"),
+        aviso_dialog.content=ft.Text("")        
+        aviso_dialog.actions=[ft.TextButton("Fechar", on_click=lambda e: fechar_dialogo())]
+        aviso_dialog.open = False        
+        page.update()
+
+    def mostrar_help(e):
+        info_box.visible = True
+        page.update()
+
+    def esconder_help(e=None):
+        info_box.visible = False
+        page.update()     
 
     def fator_potencia():
         if fator_poten.visible == True:
@@ -127,18 +172,10 @@ def main(page: ft.Page):
                 temperatura.value = temperatura.value.replace(",",".") 
             temp=float(temperatura.value)
             if temp < 10 or temp > 60:
-                aviso_dialog.content = ft.Text(f" A temperatura {temp}°C esta fora do intervalo permitido.\n Coloque de 10 a 60 °C.")
-                aviso_dialog.open = True
-                page.dialog = aviso_dialog
-                temperatura.border_color = "red"
-                page.update()
+                aviso(temperatura,f" A temperatura {temp}°C esta fora do intervalo permitido.\n Coloque de 10 a 60 °C.")
                 return "erro"
         except ValueError:
-            aviso_dialog.content = ft.Text("Digite apenas números para temperatura.")
-            aviso_dialog.open = True
-            page.dialog = aviso_dialog
-            temperatura.border_color = "red"
-            page.update()
+            aviso(temperatura,"Digite apenas números para temperatura.")
             return "erro"        
    
         if 10 <= temp < 15:  
@@ -194,6 +231,7 @@ def main(page: ft.Page):
 
         for nome, valor in campos.items():
             if "erro" == valor:
+                botao_info.visible=False
                 return
             elif valor == "" or valor == None:
                 campos_invalidos.append(nome)
@@ -204,11 +242,11 @@ def main(page: ft.Page):
             aviso_dialog.content = ft.Text(f"Corrija o(s) campo(s): {', '.join(campos_invalidos)}")
             aviso_dialog.title= ft.Text("Erro de preenchimento")
             aviso_dialog.open = True
-            page.dialog = aviso_dialog
+            botao_info.visible= False
 
             potencia.border_color = "red" if "Potência" in campos_invalidos else None
             temperatura.border_color = "red" if "Temperatura" in campos_invalidos else None
-            dropdown.border_color = "red" if "Voltagem" in campos_invalidos else None
+            dropdown.border_color = "red" if "Tensão" in campos_invalidos else None
             circuito.border_color = "red" if "Circuitos" in campos_invalidos else None
             fator_poten.border_color = "red" if "Fator potência" in campos_invalidos else None
 
@@ -262,14 +300,29 @@ def main(page: ft.Page):
                                 carga_disj.value = f"{carga_disjuntor:.2f} A"
                                 corrente_corrig.value = f"{carga_corrigida:.2f} A"
                                 carga_nece.value = f"{carga_necessaria:.2f} A"
+                                botao_info.visible=True
                                 dimensionado = True
-                                disjuntor_encontrado = True
+                                disjuntor_encontrado = True                                
+                                resultado_completo.value = (
+                                    f"⚡ Potência fornecida: {potencia_watts:.0f} (W)\n"
+                                    f"🔌 Tensão escolhida: {tensao} (V)\n"
+                                    f"➡️ Corrente calculada: {carga_necessaria:.2f} (A)\n"
+                                    f"🌡️ Temperatura fornecida: {temperatura.value} (C°)\n"
+                                    f"🔀 Circuitos fornecido: {circuito.value}\n"
+                                    f"📉 Fator de temperatura: {fator_temp}\n"                                    
+                                    f"📦 Fator de agrupamento: {fator_agrup}\n"                                    
+                                    f"🔁 Fator de potência: {fator_potc}\n"
+                                    f"📈 Folga da corrente: +{((folga - 1) * 100):.0f}% \n"                 
+                                    f"⚙️ Corrente corrigida: {carga_disjuntor:.2f} (A)\n"
+                                    f"🌀 Cabo recomendado: {bitola} mm²\n"
+                                    f"🛡️ Disjuntor recomendado: {disjuntor} (A)"
+                                )                                
                                 page.update()
                                 break
 
                         if disjuntor_encontrado:
                             aviso_dialog.title = ft.Text("Folga da corrente")
-                            aviso_dialog.content = ft.Text(f"Por segurança foi adicionado {((folga - 1) * 100):.0f}% na carga necessária\npara dimensionar o disjuntor.\nClique em HELP para mais informaçoes.")
+                            aviso_dialog.content = ft.Text(f"Por segurança foi adicionado {((folga - 1) * 100):.0f}% na carga necessária\npara dimensionar o disjuntor.\nClique em INFO para mais informaçoes.")
                             aviso_dialog.open = True
                             page.dialog = aviso_dialog
                             page.update()
@@ -283,29 +336,8 @@ def main(page: ft.Page):
                     i += 1  
 
             if not dimensionado:
-                aviso(potencia,f"Nenhuma combinação de cabo e disjuntor\natende à Potencia de {carga_necessaria:.2f} A.")        
-
-    def focus_textfield(textfield: ft.TextField):
-        textfield.focus()  
-        page.update()
-
-    def fechar_dialogo():
-        aviso_dialog.open = False
-        page.update()
-    
-    def change_button(e):
-        if e.state == ft.AudioState.PAUSED:
-            botao.text = "Play Music"
-            botao.on_click = lambda e: audio.resume()
-        elif e.state == ft.AudioState.PLAYING:
-            botao.text = "Pause Music"
-            botao.on_click = lambda e: audio.pause()
-
-        botao.update()
-
-    def switch_changed(e):
-        fator_poten.visible = not e.control.value  
-        page.update() 
+                aviso(potencia,f"Nenhuma combinação de cabo e disjuntor\natende à Potencia de {carga_necessaria:.2f} A.")
+                return   
 
     audio = ft.Audio(
         src="alarm.mp3",
@@ -320,7 +352,150 @@ def main(page: ft.Page):
         actions=[ft.TextButton("Fechar", on_click=lambda e: fechar_dialogo())]
     )
 
-    botao= ft.ElevatedButton(
+    botao_iniciar = ft.ElevatedButton(
+        text="I N I C I A R",
+        width=100,
+        height=50,        
+        on_click=verificar_campos,
+        bgcolor= ft.Colors.WHITE70,
+    )
+
+    resultado_completo = ft.Text(
+        value="casa",
+        size=16,
+        weight=ft.FontWeight.BOLD
+    )    
+
+    conteudo_com_rolagem = ft.Column(
+        scroll="auto",
+        controls=[
+            ft.TextButton("Fechar", on_click=esconder_help),
+            ft.Text(
+                value="---------------- ATENÇÃO ----------------",
+                size= 16,
+                weight=ft.FontWeight.BOLD
+            ),
+            ft.Text(
+                "Todos os calculos foram baseados na NBR-5410.\n"
+                "O programa está definido para utilizar apenas:\n"
+                "• Tipo de isolador do cabo - PVC.\n"
+                "• Método de instalação - B1.\n"
+                "• Número de condutores carregados - 2.\n"
+                "• Tensão - 127v ou 220v.\n"
+                "• Cabos de cobre - de 2,5 até 120 mm².\n"
+                "• Capacidade dos disjuntores - de 6 a 125 Amperes.\n"
+                "• Número de circuitos agrupados - 1 ou mais.\n"
+                "• Temperatura ambiente - de 10 a 60 graus Celsius.\n"
+                "• Fator de potencia - de 0.00 até 1.00.\n"
+                "O programa automaticamente inicia com FP de 0.92 mas pode ser alterado.\n" 
+                "Quando o botao equipamento resistivo for ativado o FP será 1.00\n"
+                "basta desligalo para voltar a opção de alterar o FP.\n"
+                "O programa vai automaticamente acrescentar de 15 a 10 porcento na corrente necessária do equipamento, após ela já ter sido corrigida pelos fatores acima descritos."
+                ),
+
+            ft.Text(
+                value= "----------- TABELAS NBR 5410 -----------",
+                size= 16,
+                weight=ft.FontWeight.BOLD        
+            ),
+            ft.Text("• Método de instalaçao B1 - tabela 33 págiga 90."),
+            ft.Text(
+                spans=[
+                    ft.TextSpan(
+                        "TABELA 33 - Tipos de linhas elétricas",
+                        url="https://static.wixstatic.com/media/cb85c2_95059abcb3e341b98e880478155c9262~mv2.png/v1/fill/w_350,h_716,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/cb85c2_95059abcb3e341b98e880478155c9262~mv2.png",
+                        style=ft.TextStyle(
+                            color=ft.Colors.BLUE,
+                            decoration=ft.TextDecoration.UNDERLINE
+                        )
+                    )
+                ]
+            ),           
+            ft.Text("• Máxima condução do cabo 30° - tabela 36 págiga 101."),
+            ft.Text(
+                spans=[
+                    ft.TextSpan(
+                        "TABELA 36 - Capacidades de condução de corrente",
+                        url="https://blog.rhmateriaiseletricos.com.br/wp-content/uploads/2019/06/Tabela-de-Dimensionamento-de-Cabos-El%C3%A9tricos.png",
+                        style=ft.TextStyle(
+                            color=ft.Colors.BLUE,
+                            decoration=ft.TextDecoration.UNDERLINE
+                        )
+                    )
+                ]
+            ),
+            ft.Text("• Fator temperatura diferente de 30° - tabela 40 págiga 106."),
+            ft.Text(
+                spans=[
+                    ft.TextSpan(
+                        "TABELA 40 - Fatores de correção para temperaturas ambientes",
+                        url="https://viverdeeletrica.com/wp-content/uploads/2022/04/tabela-de-cabos-com-fator-de-correcao-ambiente-NBR-5410-tabela-40-1024x651.jpg.webp",
+                        style=ft.TextStyle(
+                            color=ft.Colors.BLUE,
+                            decoration=ft.TextDecoration.UNDERLINE
+                        )
+                    )
+                ]
+            ),
+            ft.Text("• Fator de agrupamento - tabela 42 págiga 108."),
+            ft.Text(
+                spans=[
+                    ft.TextSpan(
+                        "TABELA 42 - Fatores de correção para condutores agrupados",
+                        url="https://blog.rhmateriaiseletricos.com.br/wp-content/uploads/2019/06/Tabela-42-da-NBR5410.png",
+                        style=ft.TextStyle(
+                            color=ft.Colors.BLUE,
+                            decoration=ft.TextDecoration.UNDERLINE
+                        )
+                    )
+                ]
+            ),
+
+            ft.Text(
+                value= "------------- SOBRE O APK --------------",
+                size= 16,
+                weight=ft.FontWeight.BOLD        
+            ),
+            ft.Text(
+                "Criador: Rafael Alves(Craker)2025\n"
+                "Criado com:\n"
+                "• Windows 11\n"
+                "• VsCode\n"
+                "• Phyton\n"
+                "• Flet"
+            ),
+            ft.TextButton("Fechar", on_click=esconder_info)
+        ],
+        expand=True
+    )
+
+    info_box = ft.Container(
+        content=conteudo_com_rolagem,
+        bgcolor=ft.Colors.WHITE54,
+        padding=20,
+        border_radius=10,
+        width=400,
+        height=650, 
+        visible=False
+    )
+
+    botao_info = ft.ElevatedButton(
+        text="INFO",
+        width=80,
+        height=50,        
+        on_click=mostrar_info,
+        bgcolor= ft.Colors.WHITE70,
+        visible= False        
+    )
+    botao_help = ft.ElevatedButton(
+        text="HELP",
+        width=50,
+        height=50,        
+        on_click=mostrar_help,
+        bgcolor= ft.Colors.WHITE70,       
+    )
+
+    botao_audio= ft.ElevatedButton(
         "Pause playing",
         style=ft.ButtonStyle(text_style=ft.TextStyle(
             size=12
@@ -334,6 +509,12 @@ def main(page: ft.Page):
     titulo = ft.Text(
         value="Dimensionar",
         size= 35,
+        weight=ft.FontWeight.BOLD
+    )
+
+    resultado_completo = ft.Text(
+        value="casa",
+        size=16,
         weight=ft.FontWeight.BOLD
     )
 
@@ -466,7 +647,7 @@ def main(page: ft.Page):
         bgcolor=ft.Colors.WHITE54,
         read_only=True,
         filled=True,
-        width=150,
+        width=140,
         text_align=ft.TextAlign.CENTER
     )
 
@@ -563,14 +744,6 @@ def main(page: ft.Page):
         ]        
     )    
 
-    botao_iniciar = ft.ElevatedButton(
-        text="I N I C I A R",
-        width=100,
-        height=50,        
-        on_click=verificar_campos,
-        bgcolor= ft.Colors.WHITE70,
-    )
-
     minha_assinatura = ft.Text(
         value="Craker - 2025",
         size= 15 ,
@@ -603,11 +776,12 @@ def main(page: ft.Page):
                 margin=ft.Margin(10, 5, 5, 5),                    
                 content= ft.Column(
                     controls=
-                    [      
+                    [    
+                        ft.Container(content=info_box),  
                         ft.Row(
                             [
                              titulo,
-                             botao],
+                             botao_audio],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
                         ),
                         ft.Row(
@@ -647,6 +821,7 @@ def main(page: ft.Page):
                         ),
                         ft.Row([
                             resultado_ft,
+                            botao_info,
                             resultado_fa
                             ],
                             alignment=ft.MainAxisAlignment.CENTER
@@ -662,6 +837,7 @@ def main(page: ft.Page):
                         ft.Row(
                             [
                              resultado_cabo,
+                             botao_help,
                              resultado_disjuntor
                             ],
                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN
@@ -675,7 +851,7 @@ def main(page: ft.Page):
                              )
                             ],
                             alignment=ft.MainAxisAlignment.START
-                        )
+                        )                        
                     ],
                     alignment=ft.MainAxisAlignment.START,
                     horizontal_alignment=ft.MainAxisAlignment.CENTER
@@ -690,7 +866,7 @@ def main(page: ft.Page):
         audio,
         fundo
     )
-       
+    page.dialog = aviso_dialog       
     page.update()
 
 ft.app(target=main,  assets_dir="assets")
