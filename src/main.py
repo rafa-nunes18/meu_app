@@ -70,9 +70,17 @@ def main(page: ft.Page):
         page.update() 
 
     def mostrar_info(e):
-        print(f"{resultado_completo.value}")
-        aviso_dialog.title="Resultado Completo"
-        aviso_dialog.content = ft.Text(resultado_completo.value)
+        aviso_dialog.title=ft.Text(
+            value="Resultado Completo",
+            size= 25,
+            weight=ft.FontWeight.BOLD,
+            text_align=ft.TextAlign.CENTER
+        )
+        aviso_dialog.content = ft.Text(
+            value=resultado_completo.value,
+            size= 20,
+            weight=ft.FontWeight.BOLD
+        )
         aviso_dialog.actions=[ft.TextButton("Fechar", on_click= esconder_info)]
         aviso_dialog.open = True        
         page.update()
@@ -312,8 +320,9 @@ def main(page: ft.Page):
                                     f"📉 Fator de temperatura: {fator_temp}\n"                                    
                                     f"📦 Fator de agrupamento: {fator_agrup}\n"                                    
                                     f"🔁 Fator de potência: {fator_potc}\n"
-                                    f"📈 Folga da corrente: +{((folga - 1) * 100):.0f}% \n"                 
+                                    f"📈 Folga da corrente: +{((folga - 1) * 100):.0f} % \n"                 
                                     f"⚙️ Corrente corrigida: {carga_disjuntor:.2f} (A)\n"
+                                    f"🧮 Max(A) cabo corrigida: {carga_corrigida:.2f} (A)\n"
                                     f"🌀 Cabo recomendado: {bitola} mm²\n"
                                     f"🛡️ Disjuntor recomendado: {disjuntor} (A)"
                                 )                                
@@ -322,7 +331,10 @@ def main(page: ft.Page):
 
                         if disjuntor_encontrado:
                             aviso_dialog.title = ft.Text("Folga da corrente")
-                            aviso_dialog.content = ft.Text(f"Por segurança foi adicionado {((folga - 1) * 100):.0f}% na carga necessária\npara dimensionar o disjuntor.\nClique em INFO para mais informaçoes.")
+                            aviso_dialog.content = ft.Text(
+                                f"Por segurança foi adicionado {((folga - 1) * 100):.0f}% na carga necessária para dimensionar o disjuntor.\n"
+                                "Clique em INFO para mais informaçoes."
+                            )
                             aviso_dialog.open = True
                             page.dialog = aviso_dialog
                             page.update()
@@ -386,20 +398,20 @@ def main(page: ft.Page):
                 "• Capacidade dos disjuntores - de 6 a 125 Amperes.\n"
                 "• Número de circuitos agrupados - 1 ou mais.\n"
                 "• Temperatura ambiente - de 10 a 60 graus Celsius.\n"
-                "• Fator de potencia - de 0.00 até 1.00.\n"
+                "• Fator de potência - de 0.00 até 1.00.\n"
                 "O programa automaticamente inicia com FP de 0.92 mas pode ser alterado.\n" 
-                "Quando o botao equipamento resistivo for ativado o FP será 1.00\n"
+                "Quando o botão equipamento resistivo for ativado o FP será 1.00,\n"
                 "basta desligalo para voltar a opção de alterar o FP.\n"
                 "O programa vai automaticamente acrescentar de 15 a 10 porcento na corrente necessária do equipamento, após ela já ter sido corrigida pelos fatores acima descritos."
-                ),
+            ),
 
             ft.Text(
                 value= "----------- TABELAS NBR 5410 -----------",
                 size= 16,
                 weight=ft.FontWeight.BOLD        
             ),
-            ft.Text("• Método de instalaçao B1 - tabela 33 págiga 90."),
             ft.Text(
+                "• Método de instalaçao B1 - tabela 33 págiga 90.\n",
                 spans=[
                     ft.TextSpan(
                         "TABELA 33 - Tipos de linhas elétricas",
@@ -411,8 +423,8 @@ def main(page: ft.Page):
                     )
                 ]
             ),           
-            ft.Text("• Máxima condução do cabo 30° - tabela 36 págiga 101."),
             ft.Text(
+                "• Máxima condução do cabo 30° - tabela 36 págiga 101.\n",
                 spans=[
                     ft.TextSpan(
                         "TABELA 36 - Capacidades de condução de corrente",
@@ -424,8 +436,8 @@ def main(page: ft.Page):
                     )
                 ]
             ),
-            ft.Text("• Fator temperatura diferente de 30° - tabela 40 págiga 106."),
             ft.Text(
+                "• Fator temperatura diferente de 30° - tabela 40 págiga 106.\n",
                 spans=[
                     ft.TextSpan(
                         "TABELA 40 - Fatores de correção para temperaturas ambientes",
@@ -437,8 +449,8 @@ def main(page: ft.Page):
                     )
                 ]
             ),
-            ft.Text("• Fator de agrupamento - tabela 42 págiga 108."),
             ft.Text(
+                "• Fator de agrupamento - tabela 42 págiga 108.\n",
                 spans=[
                     ft.TextSpan(
                         "TABELA 42 - Fatores de correção para condutores agrupados",
@@ -450,21 +462,34 @@ def main(page: ft.Page):
                     )
                 ]
             ),
-
             ft.Text(
                 value= "------------- SOBRE O APK --------------",
                 size= 16,
                 weight=ft.FontWeight.BOLD        
             ),
             ft.Text(
-                "Criador: Rafael Alves(Craker)2025\n"
+                "Nome: Dimensionar\n"
+                "versão: Beta-0.2\n"
+                "Criador: Rafael Alves(Craker)2025\n",
+                spans=[
+                    ft.TextSpan(
+                        "Outros projetos no GITHUB",
+                        url="https://github.com/rafa-nunes18",
+                        style=ft.TextStyle(
+                            color=ft.Colors.BLUE,
+                            decoration=ft.TextDecoration.UNDERLINE
+                        )    
+                    )
+                ],
+            ),
+            ft.Text(    
                 "Criado com:\n"
                 "• Windows 11\n"
                 "• VsCode\n"
                 "• Phyton\n"
                 "• Flet"
             ),
-            ft.TextButton("Fechar", on_click=esconder_info)
+            ft.TextButton("Fechar", on_click=esconder_help)
         ],
         expand=True
     )
@@ -664,7 +689,7 @@ def main(page: ft.Page):
         bgcolor= ft.Colors.WHITE54,
         read_only=True,
         filled=True,
-        width=150,
+        width=140,
         text_align=ft.TextAlign.CENTER
     )
 
