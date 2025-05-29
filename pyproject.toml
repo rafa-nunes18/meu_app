@@ -1,11 +1,11 @@
 [project]
 name = "meu-app"
 version = "0.1.0"
-description = ""
+description = "Dimensionar cabos elétricos residenciais"
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [
-    { name = "Flet developer", email = "you@example.com" }
+    { name = "Rafael33", email = "rafa.nunes2018@hotmail.com" }
 ]
 dependencies = [
   "flet==0.28.1",
