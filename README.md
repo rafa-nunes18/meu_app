@@ -22,6 +22,8 @@ tensão a ser aplicada.
 
 Escolha sim ou não em Calcular Queda.
 
+Escolha entre risistivo ou não.
+
 Clic em iniciar para exibir os resultados.
 
 ### RESULTADOS EXPLICADOS
