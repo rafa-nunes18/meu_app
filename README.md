@@ -2,11 +2,14 @@
 
 ## Apresentação 
  
-Criei esse app para android afim de facilitar a consulta do tamanho da bitola a ser usada em uma instalação residencial. 
-![screenshot1](src/assets/inicial2.png)
+Criei esse app para android afim de facilitar a consulta do tamanho da bitola a ser usada em uma instalação residencial.
+Ele Dimensiona usando as normas da NBR 5410.
+
 ## COMO UTLIZAR 
 
 Depois de instalado no seu celular , basta abrir e aguardar a tela inicial. 
+
+![screenshot1](src/assets/inicial2.png)
 
 ## Como criar o arquivo APP usando o Flet
 
