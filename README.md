@@ -11,6 +11,8 @@ Depois de instalado no seu celular , basta abrir e aguardar a tela inicial.
 
 ![screenshot1](src/assets/inicial2.png)
 
+Clic em PAUSE MUSIC para dar STOP ou PLAY na musica de fundo.
+
 Agora informe:
 potência total da carga em watts,
 fator de potência,
@@ -19,6 +21,8 @@ quantidade de circuitos agrupados no mesmo eletroduto e
 tensão a ser aplicada.
 
 Escolha sim ou não em Calcular Queda.
+
+Clic em iniciar para exibir os resultados.
 
 ### RESULTADOS EXPLICADOS
 🔹 Carga Necessária
