@@ -3,7 +3,7 @@
 ## Apresentação 
  
 Criei esse app para android afim de facilitar a consulta do tamanho da bitola a ser usada em uma instalação residencial. 
-![screenshot1](src/assets/inicial.jpeg)
+![screenshot1](src/assets/inicial2.jpeg)
 ## COMO UTLIZAR 
 
 Depois de instalado no seu celular , basta abrir e aguardar a tela inicial. 
